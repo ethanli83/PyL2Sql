@@ -25,7 +25,5 @@ class TSqlObjectTests(unittest.TestCase):
         query = Query(u = u).where(lambda : u.Id == 1 and u.LogonName == 'ethan.li') 
         print(query.toSql())
         
-
-
 if __name__ == "__main__":
     unittest.main()
