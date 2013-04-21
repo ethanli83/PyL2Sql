@@ -5,8 +5,7 @@ Created on Apr 21, 2013
 '''
 import unittest
 from Query import Query
-from Domain import Users
-
+from Domain import Users, Requests
 
 class TSqlObjectTests(unittest.TestCase):
 
@@ -22,9 +21,14 @@ class TSqlObjectTests(unittest.TestCase):
     def testName(self):
         
         u = Users()
+        rq = Requests()
         query = Query(lambda : u). \
                     where(lambda : u.Id == 1 and u.LogonName == 'ethan.li'). \
-                    select(lambda : { u.Id, u.Password })
+                    innerJoin(lambda : rq, lambda : rq.RequesteeId == u.Id). \
+                    select(lambda : { rq.RequesteeId, u.LogonName })
+                    
+        query.debugPrint()
+                    
         print(query.toSql())
         
 if __name__ == "__main__":

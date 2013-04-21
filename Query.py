@@ -9,25 +9,43 @@ from Utils import disassemble
 
 class Query:
 
-    def __init__(self, entityFunc):
-        codes = disassemble(entityFunc)
+    def __init__(self, entityLambda):
+        codes = disassemble(entityLambda)
+        
+        self._aliasIndex = 0;    
                 
-        self._entity = entityFunc()
+        self._entity = entityLambda()
         self._valName = codes[0].arg.replace("(", "").replace(")", "")
         self._factory = PySqlObjFactory.factory
+        
+        self._valDict = []
+        self._valDict.append((self._valName[0] + self._getAliasIndex(), self._valName, self._entity))
             
-    def innerJoin(self, to, condition):
+    def _getAliasIndex(self):
+        self._aliasIndex += 1
+        return str(self._aliasIndex)
+    
+    def _addToEntityDict(self, toLambda):
+        codes = disassemble(toLambda)
+        vName = codes[0].arg.replace("(", "").replace(")", "")
+        entity = toLambda()
+        eName = entity.entityName.lower()
+        
+        self._valDict.append((eName[0] + self._getAliasIndex(), vName, eName))
+    
+    def innerJoin(self, toLambda, condition):
+        self._addToEntityDict(toLambda)
         return self
     
-    def leftJoin(self, condition):
-        codes = disassemble(condition)
+    def leftJoin(self, toLambda, condition):
+        self._addToEntityDict(toLambda)
         return self
     
-    def rightJoin(self, to, condition):
+    def rightJoin(self, toLambda, condition):
+        self._addToEntityDict(toLambda)
         return self
 
     def where(self, predicate):
-        codes = disassemble(predicate)
         return self
     
     def select(self, selector):
@@ -44,6 +62,9 @@ class Query:
         
         table = self._factory.makeTable(self._entity)
         sql = factroy.makeQuery(table)
-        
-        return sql;
+        return sql
+    
+    def debugPrint(self):
+        print(self.toSql())    
+        print(self._valDict)
         
