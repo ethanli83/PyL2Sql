@@ -22,7 +22,9 @@ class TSqlObjectTests(unittest.TestCase):
     def testName(self):
         
         u = Users()
-        query = Query(u = u).where(lambda : u.Id == 1 and u.LogonName == 'ethan.li') 
+        query = Query(lambda : u). \
+                    where(lambda : u.Id == 1 and u.LogonName == 'ethan.li'). \
+                    select(lambda : { u.Id, u.Password })
         print(query.toSql())
         
 if __name__ == "__main__":

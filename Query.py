@@ -74,22 +74,25 @@ def disassemble(obj=None):
 
 class Query:
 
-    def __init__(self, **entity):        
-        self._valName, self._entity = entity.popitem() 
+    def __init__(self, entityFunc):
+        codes = disassemble(entityFunc)
+                
+        self._entity = entityFunc()
+        self._valName = codes[0].arg.replace("(", "").replace(")", "")
         self._factory = PySqlObjFactory.factory
-        
+            
     def innerJoin(self, to, condition):
         return self
     
     def leftJoin(self, condition):
-        d = disassemble(condition)
+        codes = disassemble(condition)
         return self
     
     def rightJoin(self, to, condition):
         return self
 
     def where(self, predicate):
-        d = disassemble(predicate)
+        codes = disassemble(predicate)
         return self
     
     def select(self, selector):
