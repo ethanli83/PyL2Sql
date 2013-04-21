@@ -4,22 +4,28 @@ Created on Apr 3, 2013
 @author: chenguangli
 '''
 
-from TSql import PySqlObjFactory
 from Utils import disassemble    
+from TSql import L2SqlObjFactory
+
+class L2MySqlTranslator(object):
+    def __init__(self, factory):
+        self._factory = factory
+
+class L2SqlTranslator(object):
+    @staticmethod
+    def makeTranslator(factory):
+        return L2MySqlTranslator(factory)
 
 class Query:
 
     def __init__(self, entityLambda):
-        codes = disassemble(entityLambda)
-        
-        self._aliasIndex = 0;    
-                
-        self._entity = entityLambda()
-        self._valName = codes[0].arg.replace("(", "").replace(")", "")
-        self._factory = PySqlObjFactory.factory
-        
         self._valDict = []
-        self._valDict.append((self._valName[0] + self._getAliasIndex(), self._valName, self._entity))
+        self._aliasIndex = 0;    
+        
+        self._factory = L2SqlObjFactory.factory
+        self._translator = L2SqlTranslator.makeTranslator(self._factory)
+        
+        self._entity = self._addToEntityDict(entityLambda)
             
     def _getAliasIndex(self):
         self._aliasIndex += 1
@@ -27,11 +33,13 @@ class Query:
     
     def _addToEntityDict(self, toLambda):
         codes = disassemble(toLambda)
-        vName = codes[0].arg.replace("(", "").replace(")", "")
-        entity = toLambda()
+        
+        vName = codes[0].arg
+        entity = toLambda()        
         eName = entity.entityName.lower()
         
-        self._valDict.append((eName[0] + self._getAliasIndex(), vName, eName))
+        self._valDict.append((eName[0] + self._getAliasIndex(), vName, entity))
+        return entity
     
     def innerJoin(self, toLambda, condition):
         self._addToEntityDict(toLambda)

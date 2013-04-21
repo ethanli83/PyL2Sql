@@ -44,7 +44,7 @@ class MachineCode(object):
                 elif index == 3:
                     code.argOffSet = int(val)
                 else:
-                    code.arg = val
+                    code.arg = val.replace("(", "").replace(")", "")
                 val = ''
                 index += 1
                 continue

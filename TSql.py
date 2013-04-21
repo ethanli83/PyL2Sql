@@ -8,20 +8,20 @@ Created on Apr 6, 2013
 reference to an object that we can select from.
 a SqlFrom can be a table from database, a cte, or even another query 
 '''
-class SqlFrom(object):
+class MySqlFrom(object):
     def __init__(self, obj):
         self.obj = obj
         self.alias = ''
         
     def __str__(self):
-        if isinstance(self.obj, SqlQuery) :
+        if isinstance(self.obj, MySqlQuery) :
             return '({}) {}'.format(self.obj, self.alias)
         return '{} {}'.format(self.obj, self.alias)
             
 '''
 represent a table in database
 '''
-class SqlTable(object):
+class MySqlTable(object):
     def __init__(self, namespace, name):
         self.namespace = namespace
         self.name = name
@@ -32,13 +32,13 @@ class SqlTable(object):
         else:
             return '{}'.format(self.name)
 
-class SqlColumn(object):
+class MySqlColumn(object):
     def __init__(self):
         self.owner = None
         self.columnable = None
         self.alias = None
 
-class SqlQuery(object):
+class MySqlQuery(object):
     def __init__(self):
         self.selects = None
         self.queryFrom = None
@@ -80,22 +80,22 @@ class SqlQuery(object):
         return sql
             
         
-class TSqlObjectFactory:
+class MySqlObjectFactory:
     def __init__(self):
         pass
     
     def makeTable(self, entity):
-        return SqlTable(entity.namespace, entity.entityName)
+        return MySqlTable(entity.namespace, entity.entityName)
     
     def makeFrom(self, obj):
-        return SqlFrom(obj)
+        return MySqlFrom(obj)
     
     def makeQuery(self, entity):
-        query = SqlQuery()
+        query = MySqlQuery()
         query.queryFrom = self.makeFrom(entity)
         return query;
     
-class PySqlObjFactory:
-    factory = TSqlObjectFactory()
+class L2SqlObjFactory:
+    factory = MySqlObjectFactory()
     
     
