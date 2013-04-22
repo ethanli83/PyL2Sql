@@ -52,9 +52,45 @@ class L2MySqlTranslator(object):
             if cmd.command == 'COMPARE_OP':
                 right = stack.pop()
                 left = stack.pop()
+                expr = None
                 if cmd.arg == '==':
                     expr = factory.makeBinary(left, Operator.equals, right)
+                if cmd.arg == '!=':
+                    expr = factory.makeBinary(left, Operator.notEquals, right)
+                if cmd.arg == '<':
+                    expr = factory.makeBinary(left, Operator.lessThan, right)
+                if cmd.arg == '<=':
+                    expr = factory.makeBinary(left, Operator.lessOrEquals, right)
+                if cmd.arg == '>':
+                    expr = factory.makeBinary(left, Operator.greatThan, right)
+                if cmd.arg == '>=':
+                    expr = factory.makeBinary(left, Operator.greatOrEquals, right)
+                if expr is not None:
                     stack.append(expr)
+                    
+            if cmd.command == 'BINARY_ADD':
+                right = stack.pop()
+                left = stack.pop()
+                expr = factory.makeBinary(left, Operator.add, right)
+                stack.append(expr)
+                
+            if cmd.command == 'BINARY_SUBTRACT':
+                right = stack.pop()
+                left = stack.pop()
+                expr = factory.makeBinary(left, Operator.substract, right)
+                stack.append(expr)
+                
+            if cmd.command == 'BINARY_MULTIPLY':
+                right = stack.pop()
+                left = stack.pop()
+                expr = factory.makeBinary(left, Operator.multiply, right)
+                stack.append(expr)
+                
+            if cmd.command == 'BINARY_DIVIDE':
+                right = stack.pop()
+                left = stack.pop()
+                expr = factory.makeBinary(left, Operator.divide, right)
+                stack.append(expr)
             
             # process and
             optr = ''
