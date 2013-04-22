@@ -17,6 +17,8 @@ class Operator:
     lessOrEquals = 8
     greatThan = 9
     greatOrEquals = 10
+    andOptr = 11
+    orOptr = 12
     
     @staticmethod
     def toMySqlOptr(optr):
@@ -40,6 +42,10 @@ class Operator:
             return '>'
         if optr == 10:
             return '>='
+        if optr == 11:
+            return 'and'
+        if optr == 12:
+            return 'or'
         
 '''
 reference to an object that we can select from.

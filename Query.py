@@ -13,10 +13,20 @@ class L2MySqlTranslator(object):
         pass
 
     def translate(self, lam, factory : MySqlObjectFactory, selectableDict):        
+        cmds = disassemble(lam)
+        result = self._translateCommands(cmds, selectableDict, factory)
+        return result[0]
+    
+    def _translateCommands(self, cmds, selectableDict, factory, eIndex = -1):
         stack = []
-        
-        for obj in disassemble(lam):
-            cmd = MachineCode.parse(obj)
+        i = 0
+        while i < len(cmds):
+            cmd = MachineCode.parse(cmds[i])
+            
+            # stop if the caller of the function told us that
+            # we only need to process these commands till this line
+            if cmd.commandOffSet == eIndex:
+                break
             
             if cmd.command == 'LOAD_FAST' or cmd.command == 'LOAD_DEREF':
                 entity = selectableDict[cmd.arg]
@@ -45,9 +55,30 @@ class L2MySqlTranslator(object):
                 if cmd.arg == '==':
                     expr = factory.makeBinary(left, Operator.equals, right)
                     stack.append(expr)
-                    
-        
-        return stack.pop()
+            
+            # process and
+            optr = ''
+            if cmd.command == 'JUMP_IF_FALSE_OR_POP':
+                optr = Operator.andOptr
+            
+            if cmd.command == 'JUMP_IF_TRUE_OR_POP':
+                optr = Operator.orOptr
+                
+            if cmd.command == 'JUMP_IF_FALSE_OR_POP' or cmd.command == 'JUMP_IF_TRUE_OR_POP':
+                jumpTo = cmd.argOffSet
+                result = self._translateCommands(cmds[i + 1 : len(cmds)], selectableDict, factory, jumpTo)
+                
+                left = stack.pop()
+                right = result[0]
+                expr = factory.makeBinary(left, optr, right)
+                
+                stack.append(expr)
+                i += result[1]
+                
+            i += 1
+                                 
+        return (stack.pop(), i)    
+    
 
 class L2SqlTranslator(object):
     translator = L2MySqlTranslator() 
