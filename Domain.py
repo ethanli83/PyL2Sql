@@ -4,7 +4,13 @@ Created on Apr 3, 2013
 @author: chenguangli
 '''
 
-class Users:
+class Entity:
+    def __init__(self):
+        self.namespace = None
+        self.entityName = ''
+
+
+class Users(Entity):
     def __init__(self):
         self.namespace = None
         self.entityName = 'users'
@@ -13,7 +19,7 @@ class Users:
         self.LogonName = ''
         self.Password = ''
 
-class Requests:
+class Requests(Entity):
     def __init__(self):
         self.namespace = None
         self.entityName = 'Requests'

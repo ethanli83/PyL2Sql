@@ -63,8 +63,4 @@ def disassemble(obj=None):
     cmdStr = str(c1.getvalue())
     commands = cmdStr.splitlines()
     
-    commandObjs = []
-    for cmd in commands:
-        commandObjs.append(MachineCode.parse(cmd))
-    
-    return commandObjs 
+    return commands 
