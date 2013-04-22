@@ -47,6 +47,13 @@ class Operator:
         if optr == 12:
             return 'or'
         
+class JoinType:
+    innerJoin = 1
+    leftJoin = 2
+    leftOuterJoin = 3
+    rightJoin = 4
+    rightOuterJoin = 5
+        
 '''
 reference to an object that we can select from.
 a SqlFrom can be a table from database, a cte, or even another query 
@@ -91,7 +98,7 @@ class MySqlBinary(object):
         return '(' +  str(self._left) + ' ' + Operator.toMySqlOptr(self._optr) + ' ' + str(self._right) + ')'
     
     '''
-    returns the refered name of the selectable in the query
+    returns the referred name of the selectable in the query
     for example, for the entity floor in select * from floor f
     the alias f is the refer name of entity floor in the query
     '''
@@ -128,25 +135,48 @@ class MySqlWhere(object):
     def __str__(self):
         return "where " + str(self._binary)
 
+class MySqlJoin(object):
+    def __init__(self, selectable, joinType, condition):
+        self._target = selectable
+        self._joinType = joinType
+        self._condition = condition
+        
+    def __str__(self, *args, **kwargs):
+        join = ''
+        if self._joinType == JoinType.innerJoin:
+            join = 'inner join'
+        if self._joinType == JoinType.leftJoin:
+            join = 'left join'
+        if self._joinType == JoinType.leftOuterJoin:
+            join = 'left outer join'
+        if self._joinType == JoinType.rightJoin:
+            join = 'right join'
+        if self._joinType == JoinType.rightOuterJoin:
+            join = 'right outer join'
+        
+        join += ' ' + str(self._target) + ' on ' + str(self._condition)
+        return join
+        
+
 class MySqlQuery(object):
     def __init__(self):
-        self.selects = None
+        self.selects = []
         self.queryFrom = None
         self.where = None
-        self.joins = None
-        self.groupBys = None
-        self.orderBys = None
-        self.ctes = None
+        self.joins = []
+        self.groupBys = []
+        self.orderBys = []
+        self.ctes = []
     
     def __str__(self):
         sql = '';
         
-        if self.ctes is not None:
+        if self.ctes is not None and len(self.ctes) > 0:
             sql += str(self.ctes) + '\n'
         
         sql += 'select'
         
-        if self.selects is None:
+        if self.selects is None or len(self.selects) == 0:
             sql += ' *\n'
         else:
             for select in self.selects:
@@ -154,17 +184,17 @@ class MySqlQuery(object):
         
         sql += 'from ' + str(self.queryFrom) + '\n'
         
-        if self.joins is not None:
+        if self.joins is not None and len(self.joins) > 0:
             for join in self.joins:
                 sql += str(join) + '\n'
         
         if self.where is not None:
             sql += str(self.where)
                 
-        if self.groupBys is not None:
+        if self.groupBys is not None and len(self.groupBys) > 0:
             sql += 'group by ' + ', '.join(str(gb) for gb in self.groupBys) + '\n'
             
-        if self.orderBys is not None:
+        if self.orderBys is not None and len(self.orderBys) > 0:
             sql += 'order by ' + ', '.join(str(ob) for ob in self.orderBys) + '\n' 
             
         return sql
@@ -192,7 +222,10 @@ class MySqlObjectFactory:
     def makeWhere(self, obj):
         return MySqlWhere(obj)
     
-    def makeQuery(self):
+    def makeJoin(self, target, joinType, condition):
+        return MySqlJoin(target, joinType, condition)
+    
+    def makeQuery(self): 
         return MySqlQuery()
     
 class L2SqlObjFactory:

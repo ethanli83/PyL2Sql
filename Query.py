@@ -5,7 +5,7 @@ Created on Apr 3, 2013
 '''
 
 from Utils import disassemble, MachineCode
-from MySqlObj import L2SqlObjFactory, MySqlObjectFactory, Operator
+from MySqlObj import L2SqlObjFactory, MySqlObjectFactory, Operator, JoinType
 from Domain import Entity
 
 class L2MySqlTranslator(object):
@@ -128,15 +128,19 @@ class Query:
         self._factory = L2SqlObjFactory.factory
         self._translator = L2SqlTranslator.translator
         
-        tup = self._addToEntityDict(entityLambda)
-        self._entity = tup[0]
-        self._entityAlias = tup[1]
-        
-        table = self._factory.makeTable(self._entity)
         query = self._factory.makeQuery()
-        query.queryFrom = self._factory.makeSelectable(table, self._entityAlias)
+        
+        tup = self._addToEntityDict(entityLambda)
+        query.queryFrom = self._getSelectable(tup)
         
         self._query = query
+            
+    def _getSelectable(self, tup):
+        entity = tup[0]
+        alias = tup[1]
+        table = self._factory.makeTable(entity)
+        return self._factory.makeSelectable(table, alias)
+        
             
     def _getAlias(self, entity : Entity):
         alias = entity.entityName.lower()[0] + str(self._aliasIndex)
@@ -159,15 +163,19 @@ class Query:
         self._selectableDict[vName] = t
         return t
     
-    def innerJoin(self, toLambda, condition):
+    def innerJoin(self, toLambda, conditionLam):
+        tup = self._addToEntityDict(toLambda)
+        joinTarget = self._getSelectable(tup)
+        condition = self._translator.translate(conditionLam, self._factory, self._selectableDict)
+        join = self._factory.makeJoin(joinTarget, JoinType.innerJoin, condition)
+        self._query.joins.append(join)
+        return self
+    
+    def leftJoin(self, toLambda, conditionLam):
         self._addToEntityDict(toLambda)
         return self
     
-    def leftJoin(self, toLambda, condition):
-        self._addToEntityDict(toLambda)
-        return self
-    
-    def rightJoin(self, toLambda, condition):
+    def rightJoin(self, toLambda, conditionLam):
         self._addToEntityDict(toLambda)
         return self
 
