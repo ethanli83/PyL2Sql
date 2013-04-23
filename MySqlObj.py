@@ -180,7 +180,8 @@ class MySqlQuery(object):
             sql += ' *\n'
         else:
             for select in self.selects:
-                sql += str(select) + '\n'
+                sql += ' ' + str(select) + ','
+            sql = sql[:-1] + ' '
         
         sql += 'from ' + str(self.queryFrom) + '\n'
         

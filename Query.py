@@ -15,7 +15,9 @@ class L2MySqlTranslator(object):
     def translate(self, lam, factory : MySqlObjectFactory, selectableDict):        
         cmds = disassemble(lam)
         result = self._translateCommands(cmds, selectableDict, factory)
-        return result[0]
+        if isinstance(result, tuple):
+            return result[0]
+        return result
     
     def _translateCommands(self, cmds, selectableDict, factory, eIndex = -1):
         stack = []
@@ -111,6 +113,9 @@ class L2MySqlTranslator(object):
                 stack.append(expr)
                 i += result[1]
                 
+            if cmd.command == 'BUILD_SET':
+                return stack
+                
             i += 1
                                  
         return (stack.pop(), i)    
@@ -186,6 +191,7 @@ class Query:
         return self
     
     def select(self, selector):
+        self._query.selects = self._translator.translate(selector, self._factory, self._selectableDict)
         return self
     
     def grooupBy(self, selector):

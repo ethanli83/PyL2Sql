@@ -9,10 +9,10 @@ from Domain import Users, Requests
 from Query import Query
 
 def main(*arg, **karg):
-    #dis.dis(lambda u : (u.id if u.id > 0 else u.idd) == 1)
+    #dis.dis(lambda u : { 'uid' : u.Id, 'ln' : u.LogonName })
     
     u = Users()
-    query = Query(lambda : u).where(lambda : u.Id == 1 or (u.Id == 2 and u.LogonName == 'ethan.li'))
+    query = Query(lambda : u).where(lambda : u.Id == 1 or (u.Id == 2 and u.LogonName == 'ethan.li')).select(lambda : { u.Id, u.LogonName })
     query.debugPrint()
     
     rq = Requests()
