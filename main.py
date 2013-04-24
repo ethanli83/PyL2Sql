@@ -9,14 +9,21 @@ from Domain import Users, Requests
 from Query import Query
 
 def main(*arg, **karg):
-    #dis.dis(lambda u : { 'uid' : u.Id, 'ln' : u.LogonName })
+    dis.dis(lambda u : { 'uid' : u.Id, 'ln' : u.LogonName * 56 })
     
     u = Users()
-    query = Query(lambda : u).where(lambda : u.Id == 1 or (u.Id == 2 and u.LogonName == 'ethan.li')).select(lambda : { u.Id, u.LogonName })
+    query = Query(lambda : u).\
+                where(lambda : u.Id == 1 or (u.Id == 2 and u.LogonName == 'ethan.li')).\
+                select(lambda : { 'Id': u.Id, 'Name': u.LogonName })
+                
     query.debugPrint()
     
     rq = Requests()
-    query = Query(lambda : u).innerJoin(lambda : rq, lambda : rq.RequesteeId == u.Id).where(lambda : u.Id + (u.Id * 3) > 100 and rq.RequesterId == 2)
+    query = Query(lambda : u).\
+                innerJoin(lambda : rq, lambda : rq.RequesteeId == u.Id).\
+                where(lambda : u.Id + (u.Id * 3) > 100 and rq.RequesterId == 2).\
+                select(lambda : { u.Id, rq.RequesteeId, rq.RequesterId })
+                
     query.debugPrint()
     
     '''

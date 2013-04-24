@@ -76,10 +76,17 @@ class MySqlField(object):
         self._instance = instance
         self._field = fieldName
         self._type = fType
+        self._alias = None
+        
+    def setAlias(self, alias):
+        self._alias = alias
         
     def __str__(self, *args, **kwargs):
         instanceName = self._instance.toInstanceName()
-        return instanceName + "." + self._field
+        fstr = instanceName + "." + self._field
+        if self._alias is not None:
+            fstr += ' as ' + str(self._alias)
+        return fstr
     
 class MySqlConstant(object):
     def __init__(self, val):
@@ -121,12 +128,6 @@ class MySqlTable(object):
             return '{}.{}'.format(self.namespace, self.name)
         else:
             return '{}'.format(self.name)
-
-class MySqlColumn(object):
-    def __init__(self):
-        self.owner = None
-        self.columnable = None
-        self.alias = None
 
 class MySqlWhere(object):
     def __init__(self, binary):

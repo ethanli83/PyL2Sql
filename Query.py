@@ -70,6 +70,7 @@ class L2MySqlTranslator(object):
                 if expr is not None:
                     stack.append(expr)
                     
+            # process calculation operator
             if cmd.command == 'BINARY_ADD':
                 right = stack.pop()
                 left = stack.pop()
@@ -94,7 +95,7 @@ class L2MySqlTranslator(object):
                 expr = factory.makeBinary(left, Operator.divide, right)
                 stack.append(expr)
             
-            # process and
+            # process logic binary operation
             optr = ''
             if cmd.command == 'JUMP_IF_FALSE_OR_POP':
                 optr = Operator.andOptr
@@ -112,9 +113,24 @@ class L2MySqlTranslator(object):
                 
                 stack.append(expr)
                 i += result[1]
-                
+            
+            # process commands that builds a list of select columns    
             if cmd.command == 'BUILD_SET':
                 return stack
+            
+            if cmd.command == 'BUILD_MAP':
+                expr = []
+                stack.append(expr)
+                
+            if cmd.command == 'STORE_MAP':
+                alias = stack.pop()
+                field = stack.pop()
+                field.setAlias(alias)
+                
+                selectList = stack.pop()
+                selectList.append(field)
+                stack.append(selectList)
+                
                 
             i += 1
                                  
@@ -191,7 +207,8 @@ class Query:
         return self
     
     def select(self, selector):
-        self._query.selects = self._translator.translate(selector, self._factory, self._selectableDict)
+        result = self._translator.translate(selector, self._factory, self._selectableDict)
+        self._query.selects = result
         return self
     
     def grooupBy(self, selector):
