@@ -58,6 +58,22 @@ class L2Sql:
     @staticmethod
     def count(obj):
         pass
+    
+    @staticmethod
+    def sum(obj):
+        pass
+    
+    @staticmethod
+    def avg(obj):
+        pass
+    
+    @staticmethod
+    def max(obj):
+        pass
+    
+    @staticmethod
+    def min(obj):
+        pass
         
 '''
 reference to an object that we can select from.
@@ -70,7 +86,10 @@ class MySqlSelectable(object):
         
     def __str__(self):
         if isinstance(self._obj, MySqlQuery) :
-            return '({}) {}'.format(self._obj, self._alias)
+            sstr = '(\n'
+            sstr += '\n'.join(['    ' + l for l in str(self._obj).splitlines()]) + '\n'
+            sstr += ') ' + self._alias
+            return sstr
         return '{} {}'.format(self._obj, self._alias)
     
     def toInstanceName(self):

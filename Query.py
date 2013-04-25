@@ -37,18 +37,21 @@ class L2MySqlTranslator(object):
                     #entity will be a tuple in which the first item is the entity and second one is alias
                     table = factory.makeTable(entity[0])
                     expr = factory.makeSelectable(table, entity[1])
-                    
+                    stack.append(expr)
+                else:
+                    expr = factory.makeSelectable(entity[0], entity[1])
                     stack.append(expr)
                     
             if cmd.command == 'LOAD_ATTR':
                 fieldName = cmd.arg
                 instance = stack.pop()
                 
-                if instance != globalIdentifier:
-                    expr = factory.makeField(instance, fieldName)
-                else:
+                if instance == globalIdentifier:
                     stack.append(globalIdentifier)
                     expr = factory.makeFunc(fieldName)
+                else:
+                    expr = factory.makeField(instance, fieldName)
+                    
                 stack.append(expr)
             
             if cmd.command == 'CALL_FUNCTION':
@@ -62,7 +65,7 @@ class L2MySqlTranslator(object):
                 expr.setParam(params)
                 stack.append(expr) 
             
-            if cmd.command == 'LOAD_CONST':
+            if cmd.command == 'LOAD_CONST' or (cmd.command == 'LOAD_GLOBAL' and cmd.arg != 'L2Sql'):
                 val = cmd.arg
                 expr = factory.makeConstant(val)
                 stack.append(expr)
@@ -148,7 +151,7 @@ class L2MySqlTranslator(object):
                 stack.append(selectList)
             
             #process aggregation func call
-            if cmd.command == 'LOAD_GLOBAL':
+            if cmd.command == 'LOAD_GLOBAL' and cmd.arg == 'L2Sql':
                 stack.append(globalIdentifier)
                 
                 
@@ -179,12 +182,18 @@ class Query:
     def _getSelectable(self, tup):
         entity = tup[0]
         alias = tup[1]
-        table = self._factory.makeTable(entity)
-        return self._factory.makeSelectable(table, alias)
         
+        if isinstance(entity, Entity):
+            table = self._factory.makeTable(entity)
+            return self._factory.makeSelectable(table, alias)
+        elif isinstance(entity, Query):
+            return self._factory.makeSelectable(entity.toSql(), alias)
             
-    def _getAlias(self, entity : Entity):
-        alias = entity.entityName.lower()[0] + str(self._aliasIndex)
+    def _getAlias(self, entity):
+        if isinstance(entity, Entity):
+            alias = entity.entityName.lower()[0] + str(self._aliasIndex)
+        else:
+            alias = 'q' + str(self._aliasIndex)
         self._aliasIndex += 1
         return alias
     

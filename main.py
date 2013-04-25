@@ -10,7 +10,7 @@ from Query import Query
 from MySqlObj import L2Sql
 
 def main(*arg, **karg):
-    dis.dis(lambda u : { 'uid' : u.Id, 'ln' : u.LogonName * 56, 'Cnt': L2Sql.count(1) })
+    #dis.dis(lambda u : { uid : u.Id, ln : u.LogonName * 56, Cnt: L2Sql.count(1) })
     
     u = Users()
     query = Query(lambda : u).\
@@ -20,14 +20,26 @@ def main(*arg, **karg):
                 orderBy(lambda : { u.LogonName, u.Cnt }) 
                 
                 
-    query.debugPrint()
+    print(query.toSql())
     
     rq = Requests()
     query = Query(lambda : u).\
                 innerJoin(lambda : rq, lambda : rq.RequesteeId == u.Id).\
-                where(lambda : u.Id + (u.Id * 3) > 100 and rq.RequesterId == 2)
+                where(lambda : u.Id + (u.Id * 3) > 100 and rq.RequesterId == 2).\
+                groupBy(lambda : { rq.RequesteeId }).\
+                select(lambda : { id: rq.RequesteeId, sum: L2Sql.sum(u.Id) })
                 
-    query.debugPrint()
+                
+    print(query.toSql())
+    rq = query
+    query0 = Query(lambda : u).\
+                innerJoin(lambda : rq, lambda : rq.Id == u.Id).\
+                where(lambda : u.Id + (u.Id * 3) > 100 and rq.RequesterId == 2).\
+                groupBy(lambda : { rq.RequesteeId }).\
+                select(lambda : { id: rq.RequesteeId, sum: L2Sql.sum(u.Id) })
+                
+                
+    print(query0.toSql())
     
     '''
     print out:
