@@ -8,6 +8,7 @@ import dis
 from Domain import Users, Requests
 from Query import Query
 from MySqlObj import L2Sql
+import pymysql
 
 def main(*arg, **karg):
     #dis.dis(lambda u : { uid : u.Id, ln : u.LogonName * 56, Cnt: L2Sql.count(1) })
@@ -40,6 +41,23 @@ def main(*arg, **karg):
                 
                 
     print(query0.toSql())
+    
+    conn = pymysql.connect(host='127.0.0.1', port=3306, user='root', passwd='password', db='test')
+    cur = conn.cursor()
+    
+    q = Query(lambda : u)
+    cur.execute(str(q.toSql()))
+    
+    # print cur.description
+    
+    # r = cur.fetchall()
+    # print r
+    # ...or...
+    for row in cur.fetchall():
+        print(row)
+    
+    cur.close()
+    conn.close()
     
     '''
     print out:
