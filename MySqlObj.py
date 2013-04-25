@@ -53,6 +53,11 @@ class JoinType:
     leftOuterJoin = 3
     rightJoin = 4
     rightOuterJoin = 5
+    
+class L2Sql:
+    @staticmethod
+    def count(obj):
+        pass
         
 '''
 reference to an object that we can select from.
@@ -87,13 +92,45 @@ class MySqlField(object):
         if self._alias is not None:
             fstr += ' as ' + str(self._alias)
         return fstr
+
+class MySqlFunc(object):
+    def __init__(self, funcName):
+        self._func = funcName
+        self._instance = None
+        self._param = None
+        self._alias = None
     
+    def setParam(self, param):
+        self._param = param
+    
+    def setAlias(self, alias):
+        self._alias = alias
+        
+    def __str__(self, *args, **kwargs):
+        func = ''
+        if self._instance is not None:
+            func += str(self._instance) + '.'
+        
+        func += self._func + "("
+        if self._param is not None:
+            if isinstance(self._param, list) and len(self._param) > 0:
+                func += ', '.join(str(p) for p in self._param)
+            else:
+                func += str(self._param)
+        func += ')'
+        
+        if self._alias is not None:
+            func += ' as ' + str(self._alias)
+        
+        return func
+                
+
 class MySqlConstant(object):
     def __init__(self, val):
         self._val = val
         
     def __str__(self, *args, **kwargs):
-        return self._val.__str__();
+        return str(self._val);
     
 class MySqlBinary(object):
     def __init__(self, left, operation, right):
@@ -165,9 +202,9 @@ class MySqlQuery(object):
         self.queryFrom = None
         self.where = None
         self.joins = []
-        self.groupBys = []
-        self.orderBys = []
-        self.ctes = []
+        self.groupBys = None
+        self.orderBys = None
+        self.ctes = None
     
     def __str__(self):
         sql = '';
@@ -178,26 +215,32 @@ class MySqlQuery(object):
         sql += 'select'
         
         if self.selects is None or len(self.selects) == 0:
-            sql += ' *\n'
+            sql += ' *'
         else:
             for select in self.selects:
                 sql += ' ' + str(select) + ','
             sql = sql[:-1] + ' '
         
-        sql += 'from ' + str(self.queryFrom) + '\n'
+        sql += '\nfrom ' + str(self.queryFrom) + '\n'
         
         if self.joins is not None and len(self.joins) > 0:
             for join in self.joins:
                 sql += str(join) + '\n'
         
         if self.where is not None:
-            sql += str(self.where)
+            sql += str(self.where) + '\n'
                 
-        if self.groupBys is not None and len(self.groupBys) > 0:
-            sql += 'group by ' + ', '.join(str(gb) for gb in self.groupBys) + '\n'
+        if self.groupBys is not None:
+            if isinstance(self.groupBys, list) and len(self.groupBys) > 0:
+                sql += 'group by ' + ', '.join(str(gb) for gb in self.groupBys) + '\n'
+            else:
+                sql += 'group by ' + str(self.groupBys) + '\n'
             
-        if self.orderBys is not None and len(self.orderBys) > 0:
-            sql += 'order by ' + ', '.join(str(ob) for ob in self.orderBys) + '\n' 
+        if self.orderBys is not None:
+            if isinstance(self.orderBys, list) and len(self.orderBys) > 0:
+                sql += 'order by ' + ', '.join(str(ob) for ob in self.orderBys) + '\n'
+            else:
+                sql += 'order by ' + str(self.orderBys) + '\n' 
             
         return sql
             
@@ -214,6 +257,9 @@ class MySqlObjectFactory:
     
     def makeField(self, instance, fieldName):
         return MySqlField(instance, fieldName)
+    
+    def makeFunc(self, funcName):
+        return MySqlFunc(funcName)
     
     def makeConstant(self, val):
         return MySqlConstant(val)

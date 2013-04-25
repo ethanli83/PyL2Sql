@@ -7,22 +7,25 @@ Created on Apr 22, 2013
 import dis
 from Domain import Users, Requests
 from Query import Query
+from MySqlObj import L2Sql
 
 def main(*arg, **karg):
-    dis.dis(lambda u : { 'uid' : u.Id, 'ln' : u.LogonName * 56 })
+    dis.dis(lambda u : { 'uid' : u.Id, 'ln' : u.LogonName * 56, 'Cnt': L2Sql.count(1) })
     
     u = Users()
     query = Query(lambda : u).\
                 where(lambda : u.Id == 1 or (u.Id == 2 and u.LogonName == 'ethan.li')).\
-                select(lambda : { 'Id': u.Id, 'Name': u.LogonName })
+                select(lambda : { 'Id': u.Id, 'Name': u.LogonName, 'Cnt': L2Sql.count(1) }).\
+                groupBy(lambda : { u.Id, u.LogonName }).\
+                orderBy(lambda : { u.LogonName, u.Cnt }) 
+                
                 
     query.debugPrint()
     
     rq = Requests()
     query = Query(lambda : u).\
                 innerJoin(lambda : rq, lambda : rq.RequesteeId == u.Id).\
-                where(lambda : u.Id + (u.Id * 3) > 100 and rq.RequesterId == 2).\
-                select(lambda : { u.Id, rq.RequesteeId, rq.RequesterId })
+                where(lambda : u.Id + (u.Id * 3) > 100 and rq.RequesterId == 2)
                 
     query.debugPrint()
     

@@ -22,6 +22,7 @@ class L2MySqlTranslator(object):
     def _translateCommands(self, cmds, selectableDict, factory, eIndex = -1):
         stack = []
         i = 0
+        globalIdentifier = object()
         while i < len(cmds):
             cmd = MachineCode.parse(cmds[i])
             
@@ -43,9 +44,24 @@ class L2MySqlTranslator(object):
                 fieldName = cmd.arg
                 instance = stack.pop()
                 
-                expr = factory.makeField(instance, fieldName)
+                if instance != globalIdentifier:
+                    expr = factory.makeField(instance, fieldName)
+                else:
+                    stack.append(globalIdentifier)
+                    expr = factory.makeFunc(fieldName)
                 stack.append(expr)
-                
+            
+            if cmd.command == 'CALL_FUNCTION':
+                params = []
+                while 1:
+                    param = stack.pop()
+                    if param == globalIdentifier:
+                        expr = params.pop()
+                        break
+                    params.append(param)
+                expr.setParam(params)
+                stack.append(expr) 
+            
             if cmd.command == 'LOAD_CONST':
                 val = cmd.arg
                 expr = factory.makeConstant(val)
@@ -130,6 +146,10 @@ class L2MySqlTranslator(object):
                 selectList = stack.pop()
                 selectList.append(field)
                 stack.append(selectList)
+            
+            #process aggregation func call
+            if cmd.command == 'LOAD_GLOBAL':
+                stack.append(globalIdentifier)
                 
                 
             i += 1
@@ -207,14 +227,15 @@ class Query:
         return self
     
     def select(self, selector):
-        result = self._translator.translate(selector, self._factory, self._selectableDict)
-        self._query.selects = result
+        self._query.selects = self._translator.translate(selector, self._factory, self._selectableDict)
         return self
     
-    def grooupBy(self, selector):
+    def groupBy(self, selector):
+        self._query.groupBys = self._translator.translate(selector, self._factory, self._selectableDict)
         return self
     
     def orderBy(self, selector):
+        self._query.orderBys = self._translator.translate(selector, self._factory, self._selectableDict)
         return self    
     
     def toSql(self):        
