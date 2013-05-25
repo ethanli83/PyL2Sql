@@ -4,16 +4,23 @@ Created on Apr 22, 2013
 @author: chenguangli
 '''
 
-import dis
-from Domain import Users, Requests
-from Query import Query
-from MySqlObj import L2Sql
 import pymysql
+from TestDataModel import Users, Requests
+from PyL2Sql.Query import Query
+from PyL2Sql.MySqlObj import L2Sql
 
 def main(*arg, **karg):
     #dis.dis(lambda u : { uid : u.Id, ln : u.LogonName * 56, Cnt: L2Sql.count(1) })
     
     u = Users()
+    
+    uid = 1
+    query = Query(lambda : u).\
+                where(lambda uid=uid: u.Id == uid) 
+                
+                
+    print(query.toSql())
+    
     query = Query(lambda : u).\
                 where(lambda : u.Id == 1 or (u.Id == 2 and u.LogonName == 'ethan.li')).\
                 select(lambda : { 'Id': u.Id, 'Name': u.LogonName, 'Cnt': L2Sql.count(1) }).\
