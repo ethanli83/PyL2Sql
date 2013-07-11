@@ -87,7 +87,7 @@ def generateDb(argv):
             column.columnName = col[0]
             column.type = col[1]
             column.isNullable = bool(col[2])
-            column.isUnique = col[3] == 'PRI'
+            column.isPrimaryKey = col[3] == 'PRI'
             column.isUnique = col[3] == 'UNI'
             
             dbTable.columns.append(column)
