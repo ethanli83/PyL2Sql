@@ -5,9 +5,9 @@ Created on Apr 22, 2013
 '''
 
 import pymysql
-from TestDataModel import Users, Requests
 from PyL2Sql.Query import Query
 from PyL2Sql.MySqlObj import L2Sql
+from tests.TestDataModel import Users, Requests
 
 def main(*arg, **karg):
     #dis.dis(lambda u : { uid : u.Id, ln : u.LogonName * 56, Cnt: L2Sql.count(1) })

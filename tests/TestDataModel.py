@@ -1,6 +1,5 @@
 from PyL2Sql.DataEntity import Entity
 
-
 class Users(Entity):
     def __init__(self):
         self.namespace = ""

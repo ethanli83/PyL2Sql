@@ -4,11 +4,9 @@ Created on Apr 3, 2013
 @author: chenguangli
 '''
 import inspect
-from PyL2Sql.Utils import MachineCode, disassemble
-from PyL2Sql.DataEntity import Entity
+from PyL2Sql.Utils import disassemble, MachineCode
 from PyL2Sql.MySqlObj import Operator, L2SqlObjFactory, JoinType
-
-
+from PyL2Sql.DataEntity import Entity
 
 class L2MySqlTranslator(object):
     def __init__(self):
